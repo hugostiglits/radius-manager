@@ -14,12 +14,12 @@ const {
 const router = express.Router();
 
 //Ве маршруты защищены JWT
-router.use(authMiddleWare);
+//router.use(authMiddleWare);
 
 router.get('/', getUsers);
-router.get('usernmae', getUser);
+router.get('/:username', getUser);
 router.post('/',createUser);
-router.put('/:username/passwrod', updatePassword);
+router.put('/:username/password', updatePassword);
 router.delete('/:username', deleteUser);
 
 module.exports = router;

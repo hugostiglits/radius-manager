@@ -31,9 +31,10 @@ class RadiusService {
                 WHERE r.username = $1 and r.attribute = 'Cleartext-Password'
                 GROUP BY r.username
                 `;
-        const rows = await pool.query(query,[username]);
-
-        return rows[0] || null
+        const { rows }  = await pool.query(query,[username]);
+        console.log('getUser rows:', rows);
+        console.log('zero item: ',   rows[0]);
+        return rows[0] || null;
 
 
 
@@ -41,6 +42,7 @@ class RadiusService {
     async createUser(username, password, groupname=null) {
 
         const client = await pool.connect();
+        
         try {
             await client.query('BEGIN');
             //проверка существования
@@ -58,11 +60,11 @@ class RadiusService {
             //Если указана группа  - добавляем в radusergroup
             if (groupname) {
                 await client.query(
-                    'INSERT INTO radusergroup (username,groupname, priority) VALUES ($1,$2,$1)', [username, groupname]
+                    'INSERT INTO radusergroup (username,groupname, priority) VALUES ($1,$2,1)', [username, groupname]
                 );
             }
-            await client.queery('COMMIT');
-            return (username, group: groupname || null);
+            await client.query('COMMIT');
+            return (username, {group: groupname || null});
 
         } catch (err) {
             await client.query('ROLLBACK');
@@ -79,7 +81,7 @@ class RadiusService {
         return result.rowCount > 0;
     }
     //Удалить пощльзователя из всез таблиц
-    async deleteUser(username) {
+    async deleteUser(username) { 
             const client = await pool.connect();
             try {
                 await client.query('BEGIN');

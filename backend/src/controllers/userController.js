@@ -25,7 +25,7 @@ exports.getUser = async (req, res) => {
 
 exports.createUser = async (req, res) =>{
     try {
-        const {username, password, group} = req.body;
+        const { username, password, group } = req.body;
         if (!username || !password) {
             return res.status(400).json({error: "Username and password are required"});
         }
@@ -41,7 +41,7 @@ exports.updatePassword = async (req, res) =>{
         const { username } = req.params;
         const { password } = req.body ;
         if (!password) {
-            return res.status(400).json(error: "New password is required");
+            return res.status(400).json({error: "New password is required"});
         }
         const updated = await radiusService.updatePassword(username,password);
         if (!updated) {

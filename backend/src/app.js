@@ -49,25 +49,12 @@ app.get('/api/protected',authMiddleware,(req, res)=>{
 //конец тестовой поебеньи
 
 
-
-
-
-
-
 //Возня рабочая 
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth',authRoutes);
 
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users',userRoutes);
-
-
-
-
-
-
-
-
 
 
 
