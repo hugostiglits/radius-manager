@@ -27,9 +27,12 @@ app.use(express.json());  // Позволяю принимать ДЖэсон в
 //тестовая поебень
 app.get('/api/health',(req,res)=>{
     res.json({
-        status : 'OK',
-        time : new Date(),
-    });
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            version: process.version
+        });
 });
 
 app.get('/api/db-test', async (req,res)=>{
@@ -62,6 +65,7 @@ app.use('/api/users',userRoutes);
 
 const PORT  = process.env.PORT || '8000';
 
-app.listen(PORT,()=>{
-    console.log(`Server running on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`✅ Сервер запущен на http://localhost:${PORT}`);
+    console.log(`✅ Health check: http://localhost:${PORT}/api/health`);
 });

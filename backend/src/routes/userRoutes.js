@@ -14,7 +14,7 @@ const {
 const router = express.Router();
 
 //Ве маршруты защищены JWT
-//router.use(authMiddleWare);
+router.use(authMiddleWare);
 
 router.get('/', getUsers);
 router.get('/:username', getUser);

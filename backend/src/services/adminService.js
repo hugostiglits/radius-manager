@@ -27,7 +27,7 @@ class AdminService {
         const { rows } =  await pool.query(query,[username]);
         if (rows.length === 0) return null;
         const admin = rows[0];
-        const isValid = bcrypt.compare(password, admin.password_hash);
+        const isValid =  await bcrypt.compare(password, admin.password_hash);
         if (!isValid) return null;
         const token = jwt.sign(
             {id: admin.id, username: admin.username, role: admin.role},

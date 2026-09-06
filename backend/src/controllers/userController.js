@@ -58,11 +58,28 @@ exports.updatePassword = async (req, res) =>{
 exports.deleteUser = async (req, res) => {
     try {
         const { username }  = req.params;
-        await radiusService.deleteUser(username);
-        res.json({message: "USer deleted"});
+
+        if (!username || username.trim === '') {
+            return res.status(400).json({message: "Нужно здесь быть пользователя имени"});
+        }
+        const result = await radiusService.deleteUser(username);
+          if (!result.success) {
+            return res.status(400).json({
+                success: false,
+                error: result.message
+            });
+        }
+        res.json({
+            success: true,
+            message: result.message,
+            data: {
+                username: result.username,
+                deletedCount: result.deletedCount
+            }
+        });
 
     } catch (err) {
-        
+        console.error('Ошибка в deleteUser:', err);
         res.status(400).json({error : err.message});
 
     }

@@ -19,6 +19,7 @@ class RadiusService {
         return rows ;
                 
     }
+    
     async getUser(username) {
         const query = `
                 SELECT 
@@ -83,16 +84,53 @@ class RadiusService {
     //Удалить пощльзователя из всез таблиц
     async deleteUser(username) { 
             const client = await pool.connect();
+
+
             try {
+                const checkUser = await client.query(
+                    'SELECT username from radcheck WHERE username = $1 and attribute = $2',[username, "Cleartext-Password"]
+                );
+
+                if (checkUser.rows.length === 0 ) {
+                    throw new Error(`Пользователь ${username} не найден`);
+                }
+        
                 await client.query('BEGIN');
-                await client.query('DELETE FROM radcheck where username         = $1',  [username]);
-                await client.query('DELETE FROM radreply WHERE username         = $1',  [username]);
-                await client.query('DELETE FROM radusergroup WHERE username     = $1',  [username]);
-                await client.query('DELETE FROM radgroupcheck WHERE username    = $1',  [username]);
-                await client.query('DELETE FROM radgroupreply WHERE username    = $1',  [username]);
+
+                const results = await Promise.all([
+                                client.query('DELETE FROM radcheck WHERE username = $1', [username]),
+                                client.query('DELETE FROM radreply WHERE username = $1', [username]),
+                                client.query('DELETE FROM radusergroup WHERE username = $1', [username]),
+                                // Дополнительно: очищаем логи и сессии
+                                client.query('DELETE FROM radpostauth WHERE username = $1', [username]),
+                                client.query('DELETE FROM radacct WHERE username = $1', [username]),
+                ]);
+                const totalDeleted = results.reduce((sum, result) => sum + result.rowCount, 0);
+
+                if (totalDeleted === 0) {
+                    throw new Error(`не удалосб удалить пользователя  ${username} `);
+                }
+
                 await client.query('COMMIT');
+                console.log(`Пользователь ${username} успешно удален. Удалено записей: ${totalDeleted}`);
+
+                return {
+                    success: true,
+                    username,
+                    message: `Пользователь ${username} успешно удален.`,
+                    deletedCount: totalDeleted,
+                };
+
+
             } catch (err) {
                     await client.query('ROLLBACK');
+                    console.error(`Ошибка удаления пользователя ${username}:`, err);
+                    return {
+                        success: false,
+                        username,
+                        message: err.message,
+                        deletedCount: 0
+                    }
             } finally {
                 client.release();
             }
