@@ -1,15 +1,22 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { ThemeProvider, CssBaseline, createTheme } from '@mui/material';
+import { cyberpunkTheme } from './theme';
+
+
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+
+
+import TestIpInfo from './TestIpInfo';
+
 
 
 //Pagez
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import mainPage from './pages/MainPage";
+import LandingPage from './pages/LandingPage';
 
 // Тёмная тема для Material-UI
 const darkTheme = createTheme({
@@ -30,18 +37,27 @@ const darkTheme = createTheme({
 
 console.log('API URL:', process.env.REACT_APP_API_URL);
 
+
+
+
+
 function App() {
   return (
-    <ThemeProvider theme={darkTheme}>
+   
+    <ThemeProvider theme={cyberpunkTheme}>
+
+      <CssBaseline />
+       {/* <TestIpInfo/> */}
       <AuthProvider>
         <BrowserRouter>
           <Routes>
               {/* Публичные маршруты */}
+            <Route path="/" element={<LandingPage/>}/>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
              {/* Защищённые маршруты */}
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>

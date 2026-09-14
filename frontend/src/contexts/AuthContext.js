@@ -4,15 +4,15 @@ import api from '../api/axiosConfig';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [admin, setAdmin] = useState(null);
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect( () =>{
         const token = localStorage.getItem('token');
-        const savedAdmin = localStorage.getItem('admin');
+        const savedUser = localStorage.getItem('user');
 
-        if (token && savedAdmin) {
-          setAdmin(JSON.parse(savedAdmin));  
+        if (token && savedUser) {
+          setUser(JSON.parse(savedUser));  
         }
         setLoading(false);
     },[]);
@@ -21,25 +21,25 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) =>{
         console.log('AuthContext login called', username, password);
         const res = await api.post('/auth/login',{username, password});
-        const {token, admin} = res.data;
+        const {token, user} = res.data;
         localStorage.setItem('token',token);
-        localStorage.setItem('admin',JSON.stringify(admin));
-        setAdmin(admin);
-        return admin;
+        localStorage.setItem('user',JSON.stringify(user));
+        setUser(user);
+        return user;
     };
     //регистрация
     const register = async (username, password) => {
         const res = await api.post('/auth/register', {username, password});
         return res.data;
     }
-    //выход
+    //выход 
     const logout = () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('admin');
-        setAdmin(null);
+        localStorage.removeItem('user');
+        setUser(null);
     } 
 
-    const value =  { admin, loading, login, register, logout };
+    const value =  { user, loading, login, register, logout };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 

@@ -3,15 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
-
-
-
-
-
 const authMiddleware = require('./middleware/auth');
-
 const pool = require ('./config/db');
-
 require('dotenv').config();
 
 const app = express();
@@ -54,6 +47,7 @@ app.get('/api/protected',authMiddleware,(req, res)=>{
 
 //Возня рабочая 
 const authRoutes = require('./routes/authRoutes');
+
 app.use('/api/auth',authRoutes);
 
 const userRoutes = require('./routes/userRoutes');

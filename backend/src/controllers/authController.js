@@ -16,12 +16,14 @@ exports.register = async (req, res)=>{
     }
 }
 
-exports.login = async ( req, res) =>{
+exports.login = async ( req, res ) => {
     try {
         const {username, password} = req.body;
         if (!username || !password) {
             res.status(400).json({error: "Username and password is required"});
         }
+        // Добавьте логирование
+        console.log('Attempting login for admin:', username);
         const result = await adminService.login(username, password);
         if (!result) {
             res.status(401).json({error: "Invalid credentials"});
@@ -30,6 +32,9 @@ exports.login = async ( req, res) =>{
         res.json(result);
 
     } catch (err) {
+         // Улучшенное логирование ошибки
+        console.error('Login error:', err);
+        console.error('Stack trace:', err.stack);
         res.status(500).json({ error : err.message });
     }
 }
