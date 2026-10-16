@@ -7,8 +7,9 @@ import { useAuth } from '../contexts/AuthContext';
 const Register = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('false');
+    const [success, setSuccess] = useState(false);
     const {register} = useAuth();
     const navigate = useNavigate();
 
@@ -16,7 +17,7 @@ const Register = () => {
         e.preventDefault();
         setError('');
         try {
-            await register(username, password);
+            await register(username, password, email);
             setSuccess(true);
             setTimeout(() => navigate('/login') ,2000);
 
@@ -28,7 +29,7 @@ const Register = () => {
     return (
         <Container maxWidth="xs">
             <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography variant='h5'>Регистрация администратора</Typography>
+                <Typography variant='h5'>Регистрация пользователя</Typography>
                 {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
                 {success && <Alert severity="success" sx={{ width: '100%', mt: 2 }}>Регистрация успешна! Перенаправление на страницу входа...</Alert>}
                 <Box component="form" onSubmit={handleSubmit} sx={{mt:1}}>
@@ -44,11 +45,22 @@ const Register = () => {
                         margin="normal"
                         required
                         fullWidth
+                        label="Email"
+                        type="email"
+                        autoComplete='email'
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
                         label="Пароль"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+  
                     <Button type='submit' fullWidth variant='contained' sx={{mt: 3, mb: 2}}>
                         Зарегистрироваться
                     </Button>

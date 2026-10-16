@@ -1,4 +1,4 @@
-import React, {createContext, useState, useContext, useEffect, Children} from 'react';
+import React, {createContext, useState, useContext, useEffect} from 'react';
 import api from '../api/axiosConfig';
 
 const AuthContext = createContext();
@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
     //вход
     const login = async (username, password) =>{
-        console.log('AuthContext login called', username, password);
         const res = await api.post('/auth/login',{username, password});
         const {token, user} = res.data;
         localStorage.setItem('token',token);
@@ -28,8 +27,8 @@ export const AuthProvider = ({ children }) => {
         return user;
     };
     //регистрация
-    const register = async (username, password) => {
-        const res = await api.post('/auth/register', {username, password});
+    const register = async (username, password, email) => {
+        const res = await api.post('/auth/register', {username, password, email});
         return res.data;
     }
     //выход 

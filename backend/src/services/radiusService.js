@@ -6,7 +6,6 @@ class RadiusService {
 
         const query = `SELECT 
                     r.username,
-                    MAX(r.value) AS password,
                     COALESCE(string_agg(g.groupname, ', '), '') AS groups
                     FROM radcheck r
                     LEFT JOIN radusergroup g ON r.username = g.username
@@ -33,8 +32,6 @@ class RadiusService {
                 GROUP BY r.username
                 `;
         const { rows }  = await pool.query(query,[username]);
-        console.log('getUser rows:', rows);
-        console.log('zero item: ',   rows[0]);
         return rows[0] || null;
 
 
@@ -75,6 +72,48 @@ class RadiusService {
         }
 
     }
+
+    async updateGroup(username, groupname) {
+        const group = groupname?.trim();
+        if (!group) {
+            throw new error('group is required');
+        }
+
+        const client = await pool.connect();
+        try {
+        await client.query('BEGIN');
+            const user = await client.query(
+                `SELECT 1 FROM radcheck
+                WHERE username = $1 AND attribute = 'Cleartext-Password'
+                LIMIT 1`,
+                [username]
+            );
+            if (user.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return false;
+            }
+            await client.query(
+                'DELETE FROM radusergroup WHERE username = $1',
+                [username]
+            );
+            await client.query(
+                `INSERT INTO radusergroup (username, groupname, priority)
+                VALUES ($1, $2, 1)`,
+                [username, group]
+            );
+
+
+            await client.query('COMMIT');
+            return true;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+
     async updatePassword(username, newPassword) {
         const result = await pool.query(
             'UPDATE radcheck set value = $1 WHERE username = $2 and attribute = $3',

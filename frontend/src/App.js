@@ -50,21 +50,25 @@ function App() {
        {/* <TestIpInfo/> */}
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-              {/* Публичные маршруты */}
-            <Route path="/" element={<LandingPage/>}/>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-
-             {/* Защищённые маршруты */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-              {/* Редирект */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+            <Routes>
+              {/* Страница по умолчанию */}
+              <Route path="/" element={<Login />} />
+              {/* Сохраняем отдельный адрес входа */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              {/* Основная страница сайта */}
+              <Route path="/home" element={<LandingPage />} />
+              {/* Административная панель */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

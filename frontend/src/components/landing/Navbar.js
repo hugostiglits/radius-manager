@@ -5,35 +5,27 @@ import { Link as ScrollLink } from 'react-scroll';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const StyledAppBar = styled(AppBar)({
-  background: 'rgba(10, 15, 10, 0.95)',
-  borderBottom: '2px solid #00ff41',
-  boxShadow: '0 0 20px rgba(0, 255, 65, 0.3)',
-});
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  background: 'rgba(34, 33, 31, 0.96)',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
+}));
 
 const NavLink = styled(ScrollLink)(({ theme }) => ({
-  color: '#00aa2a',
+  color: theme.palette.text.secondary,
   textDecoration: 'none',
   fontSize: '0.85rem',
-  letterSpacing: '1px',
+  letterSpacing: '0.04em',
   cursor: 'pointer',
-  padding: '0.5rem 1rem',
-  transition: 'all 0.3s',
+  padding: '0.5rem 0.75rem',
+  borderRadius: 9,
+  transition: 'color 0.2s, background-color 0.2s',
   '&:hover': {
-    color: '#00ff41',
-    textShadow: '0 0 10px rgba(0, 255, 65, 0.8)',
+    color: theme.palette.primary.main,
+    backgroundColor: 'rgba(229, 189, 130, 0.08)',
   },
 }));
 
-const Scanline = styled(Box)({
-  height: '1px',
-  background: 'linear-gradient(90deg, transparent, #00ff41, transparent)',
-  animation: 'scan 3s linear infinite',
-  '@keyframes scan': {
-    '0%': { transform: 'translateX(-100%)' },
-    '100%': { transform: 'translateX(100%)' },
-  },
-});
 
 const Navbar = () => {
   const { user, logout} = useAuth();
@@ -56,68 +48,56 @@ const handleLogout = () => {
   return (
     <StyledAppBar position="fixed">
       <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography 
-            sx={{ 
-              fontSize: '1.5rem', 
-              color: '#00ff41',
-              textShadow: '0 0 10px rgba(0, 255, 65, 0.8)',
-              animation: 'pulse 2s infinite',
-            }}
-          >
-            ☢
-          </Typography>
-          <Typography variant="h6" sx={{ color: '#00ff41', letterSpacing: 2 }}>
-            CHEBURNET_OS
-          </Typography>
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: '#00aa2a', 
-              border: '1px solid #00aa2a',
-              px: 0.5,
-              ml: 1,
-            }}
-          >
-            v2.0.77
-          </Typography>
-        </Box>
+<Box
+  component="a"
+  href="/"
+  aria-label="На главную"
+  sx={{ display: 'inline-flex', alignItems: 'center' }}
+>
+  <Box
+    component="img"
+    src="/brand-mark.svg"
+    alt=""
+    sx={{ width: 50, height: 40, display: 'block' }}
+  />
+</Box>
 
         <Box sx={{ display: 'flex', gap: 3 }}>
-          {['status', 'systems', 'vault', 'connect'].map((section) => (
-            <NavLink
-              key={section}
-              to={section}
-              spy={true}
-              smooth={true}
-              offset={-70}
-              duration={500}
-            >
-              [{section.toUpperCase()}]
-            </NavLink>
-          ))}
+            {[
+              { id: 'home', label: 'Главная' },
+              { id: 'status', label: 'Проверка IP' },
+            ].map(({ id, label }) => (
+              <NavLink
+                key={id}
+                to={id}
+                spy={true}
+                smooth={true}
+                offset={-80}
+                duration={400}
+              >
+                {label}
+              </NavLink>
+            ))}
         </Box>
-
+        {/* Прроверяем , авторизован ли пользователь */}
         { user ? (
          <>
-              <Button 
-                href="/dashboard" 
-                variant="outlined" 
-                size="small"
-                sx={{ color: '#00ff41', borderColor: '#00ff41' }}
-              >
-                [DASHBOARD]
-              </Button>
+              {user?.role === 'admin' && (
+                <Button
+                  href="/dashboard"
+                  variant="outlined"
+                  size="small"
+                >
+                  [DASHBOARD]
+                </Button>
+              )}
               <Button 
                 onClick={handleLogout}
                 variant="outlined" 
                 size="small"
-                sx={{ 
-                  color: '#ff4444', 
-                  borderColor: '#ff4444',
-                  '&:hover': {
-                    background: 'rgba(255, 68, 68, 0.1)',
-                  }
+                sx={{
+                  color: 'text.secondary',
+                  borderColor: 'divider',
                 }}
               >
                 [LOGOUT]
@@ -132,13 +112,6 @@ const handleLogout = () => {
             href="/register" 
             variant="outlined" 
             size="small"
-            sx={{ 
-              animation: 'glow 2s ease-in-out infinite alternate',
-              '@keyframes glow': {
-                'from': { boxShadow: '0 0 5px rgba(0, 255, 65, 0.3)' },
-                'to': { boxShadow: '0 0 20px rgba(0, 255, 65, 0.6)' },
-              },
-            }}
           >
             [REGISTER]
           </Button>
@@ -146,7 +119,6 @@ const handleLogout = () => {
 
         )} 
       </Toolbar>
-      <Scanline />
     </StyledAppBar>
   );
 };

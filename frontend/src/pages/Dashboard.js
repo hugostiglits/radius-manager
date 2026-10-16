@@ -18,6 +18,8 @@ const Dashboard = () => {
     const [editingUser, setEditingUser] = useState(null);
     const [formData, setFormData] = useState({username: '', password: '', group: ''});
     const {logout} = useAuth();
+    const [visiblePassword, setVisiblePassword] = useState(null);
+
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -78,6 +80,18 @@ const Dashboard = () => {
 
         try {
             if (editingUser) {
+              const newGroup = formData.group.trim();
+              const oldGroup = (editingUser.groups || '').trim();
+              if (newGroup !== oldGroup) {
+                  if (!newGroup) {
+                    setError('Группа не может быть пустой');
+                    return;
+                }
+    await api.put(
+        `/users/${encodeURIComponent(editingUser.username)}/group`,
+        { group: newGroup }
+    );
+}
               //режим редактирования 
                 if (formData.password) {
                     await api.put(`/users/${editingUser.username}/password`, { password: formData.password });
@@ -88,7 +102,7 @@ const Dashboard = () => {
                 const payload = {
                       username: formData.username.trim(), // обрезаем пробелы
                       password: formData.password,
-                      groupname: formData.group || null   // если группа не указана — null
+                      group: formData.group || null   // если группа не указана — null
                 };
 
               await api.post('/users', payload);
@@ -118,19 +132,36 @@ const Dashboard = () => {
         }
     };
 
+
+    const togglePassword = async  (username) => {
+        if (visiblePassword?.username === username) {
+          setVisiblePassword(null);
+          return;
+        }
+        try {
+          setVisiblePassword(null);
+          const response = await api.get(`/users/${encodeURIComponent(username)}`);
+
+          setVisiblePassword({ username, password: response.data.password } );
+        } catch (err) {
+          setError(err.response?.data?.error || 'Не удалось получить пароль');
+        }
+
+    };
+
     return (
             <Container>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, mb: 2 }}>
-        <Typography variant="h4">Пользователи RADIUS</Typography>
-        <Box>
-          <Button variant="outlined" color="secondary" onClick={logout} sx={{ mr: 2 }}>
-            Выйти
-          </Button>
-          <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenDialog()}>
-            Добавить
-          </Button>
-        </Box>
-      </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, mb: 2 }}>
+                <Typography variant="h4">Пользователи RADIUS</Typography>
+                <Box>
+                  <Button variant="outlined" color="secondary" onClick={logout} sx={{ mr: 2 }}>
+                    Выйти
+                  </Button>
+                  <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenDialog()}>
+                    Добавить
+                  </Button>
+                </Box>
+              </Box>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {loading ? (
         <CircularProgress />
@@ -148,14 +179,27 @@ const Dashboard = () => {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.username}>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>••••••</TableCell>
+                  <TableCell> {user.username}</TableCell>
+                  
+                  <TableCell>
+                    { visiblePassword?.username === user.username ? visiblePassword.password : 'xxxxxx'}
+                    <Button
+                      size='small'
+                      onClick={() => togglePassword(user.username)}
+                    >
+                      {visiblePassword?.username === user.username ? 'скрыть' : 'показать'}
+                    </Button>
+
+
+
+
+                  </TableCell>
                   <TableCell>{user.groups || '-'}</TableCell>
                   <TableCell align="right">
                     <IconButton color="primary" onClick={() => handleOpenDialog(user)}>
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(user.username)}>
+                    <IconButton color="error" onClick={() =>   handleDelete(user.username)}>
                       <Delete />
                     </IconButton>
                   </TableCell>

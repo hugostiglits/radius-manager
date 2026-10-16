@@ -1,318 +1,266 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, Paper } from '@mui/material';
-import { styled } from '@mui/material/styles';
-
-const MapContainer = styled(Paper)({
-  width: '100%',
-  maxWidth: 700,
-  height: 350,
-  margin: '0 auto',
-  background: 'rgba(10, 15, 10, 0.9)',
-  border: '1px solid #00aa2a',
-  position: 'relative',
-  overflow: 'hidden',
-});
-
-const ScanLine = styled(Box)({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  height: '2px',
-  background: 'rgba(0, 255, 65, 0.5)',
-  animation: 'scan 3s linear infinite',
-  '@keyframes scan': {
-    '0%': { transform: 'translateY(0)' },
-    '100%': { transform: 'translateY(350px)' },
-  },
-});
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  Typography,
+} from '@mui/material';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../api/axiosConfig';
 
 const GeoCheck = () => {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const svgRef = useRef(null);
+  const requestId = useRef(0);
+
+  // При выходе убираем результат предыдущего пользователя.
+  useEffect(() => {
+    if (!user) {
+      requestId.current += 1;
+      setData(null);
+      setLoading(false);
+      setError('');
+    }
+  }, [user]);
 
   const handleCheck = async () => {
+    if (!user || loading) return;
+
+    const currentRequest = ++requestId.current;
     setLoading(true);
-    setError(null);
-    
+    setError('');
+    setData(null);
+
     try {
-      const TOKEN = process.env.REACT_APP_IPINFO_TOKEN;
-      const response = await fetch(`https://ipinfo.io/json?token=${TOKEN}`);
-      
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
-      const result = await response.json();
-      setData(result);
-      
-      // Рисуем карту после получения данных
-      drawMap(result.country);
-      
+      const ipResponse = await fetch('https://api64.ipify.org?format=json');
+      if (!ipResponse.ok) throw new Error('Не удалось получить публичный IP');
+
+      const { ip } = await ipResponse.json();
+      if (!ip) throw new Error('Сервис не вернул IP-адрес');
+
+      // api уже добавляет токен к запросам.
+      const response = await api.get('/geo/check', { params: { ip } });
+
+      if (currentRequest === requestId.current) {
+        setData(response.data);
+      }
     } catch (err) {
-      setError(err.message);
+      if (currentRequest === requestId.current) {
+        setError(
+          err.response?.status === 401
+            ? 'Сессия завершилась. Войдите снова.'
+            : 'Не удалось выполнить проверку. Попробуйте позже.'
+        );
+      }
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) {
+        setLoading(false);
+      }
     }
   };
 
-  const drawMap = async (userCountry) => {
-    // Динамически импортируем D3
-    const d3 = await import('d3');
-    const topojson = await import('topojson-client');
-    
-    const svg = d3.select(svgRef.current);
-    svg.selectAll('*').remove();
-    
-    const width = 700;
-    const height = 350;
-    
-    // Проекция
-    const projection = d3.geoNaturalEarth1()
-      .scale(120)
-      .translate([width / 2, height / 2]);
-    
-    const path = d3.geoPath().projection(projection);
-    
-    // Загружаем данные карты
-    const worldData = await fetch(
-      'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
-    ).then(r => r.json());
-    
-    const countries = topojson.feature(worldData, worldData.objects.countries).features;
-    
-    // Рисуем страны
-    svg.selectAll('path')
-      .data(countries)
-      .enter()
-      .append('path')
-      .attr('d', path)
-      .attr('fill', d => {
-        // Подсвечиваем страну пользователя
-        if (d.properties.name === userCountry || 
-            d.id === userCountry?.toUpperCase()) {
-          return '#ff4444';
-        }
-        return '#0a2a0a';
-      })
-      .attr('stroke', '#00aa2a')
-      .attr('stroke-width', 0.5)
-      .attr('opacity', d => {
-        const isUserCountry = d.properties.name === userCountry;
-        return isUserCountry ? 1 : 0.4;
-      })
-      .style('filter', d => {
-        const isUserCountry = d.properties.name === userCountry;
-        return isUserCountry ? 'drop-shadow(0 0 10px #ff4444)' : 'none';
-      });
-    
-    // Добавляем пульсирующий круг на страну пользователя
-    const userCountryFeature = countries.find(c => 
-      c.properties.name === userCountry
-    );
-    
-    if (userCountryFeature) {
-      const centroid = path.centroid(userCountryFeature);
-      
-      svg.append('circle')
-        .attr('cx', centroid[0])
-        .attr('cy', centroid[1])
-        .attr('r', 5)
-        .attr('fill', 'none')
-        .attr('stroke', '#ff4444')
-        .attr('stroke-width', 2)
-        .style('opacity', 0.8)
-        .transition()
-        .duration(2000)
-        .ease(d3.easeSinInOut)
-        .attr('r', 30)
-        .style('opacity', 0)
-        .on('end', function repeat() {
-          d3.select(this)
-            .attr('r', 5)
-            .style('opacity', 0.8)
-            .transition()
-            .duration(2000)
-            .ease(d3.easeSinInOut)
-            .attr('r', 30)
-            .style('opacity', 0)
-            .on('end', repeat);
-        });
-    }
-  };
+  // Карта строится после того, как результат и SVG появились на странице.
+  useEffect(() => {
+    if (!user || !data || !svgRef.current) return;
+
+    let cancelled = false;
+
+    const drawMap = async () => {
+      const [d3, topojson] = await Promise.all([
+        import('d3'),
+        import('topojson-client'),
+      ]);
+
+      const response = await fetch(
+        'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+      );
+      if (!response.ok) throw new Error('Не удалось загрузить карту');
+
+      const world = await response.json();
+      if (cancelled || !svgRef.current) return;
+
+      const svg = d3.select(svgRef.current);
+      svg.selectAll('*').remove();
+
+      const projection = d3
+        .geoNaturalEarth1()
+        .fitSize([700, 350], { type: 'Sphere' });
+      const path = d3.geoPath(projection);
+      const countries = topojson.feature(
+        world,
+        world.objects.countries
+      ).features;
+
+      svg
+        .selectAll('path')
+        .data(countries)
+        .join('path')
+        .attr('d', path)
+        .attr('fill', '#36332f')
+        .attr('stroke', '#746a5d')
+        .attr('stroke-width', 0.6);
+
+      const point = projection([
+        Number(data.longitude),
+        Number(data.latitude),
+      ]);
+
+      if (point && point.every(Number.isFinite)) {
+        const [x, y] = point;
+
+        svg
+          .append('circle')
+          .attr('cx', x)
+          .attr('cy', y)
+          .attr('r', 15)
+          .attr('fill', '#e5bd82')
+          .attr('opacity', 0.18);
+
+        svg
+          .append('circle')
+          .attr('cx', x)
+          .attr('cy', y)
+          .attr('r', 6)
+          .attr('fill', '#e5bd82')
+          .attr('stroke', '#1b1b1b')
+          .attr('stroke-width', 2);
+      }
+    };
+
+    drawMap().catch(() => {
+      if (!cancelled) setError('Регион определён, но карта не загрузилась.');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data, user]);
 
   return (
-    <Box id="status" sx={{ py: 8, textAlign: 'center' }}>
-      {/* Заголовок секции */}
-      <Typography 
-        variant="h2" 
-        sx={{ 
-          color: '#00ff41', 
-          fontSize: '1.5rem',
-          letterSpacing: 3,
-          mb: 1 
+    <Box
+      component="section"
+      id="status"
+      sx={{
+        py: { xs: 8, md: 12 },
+        px: 2,
+        textAlign: 'center',
+        scrollMarginTop: '80px',
+      }}
+    >
+      <Typography
+        component="h2"
+        sx={{
+          color: 'text.primary',
+          fontSize: { xs: '2rem', md: '2.75rem' },
+          fontWeight: 700,
+          mb: 1.5,
         }}
       >
-        &lt;STATUS_CHECK/&gt;
-      </Typography>
-      
-      <Typography sx={{ color: '#00aa2a', mb: 4, fontSize: '0.9rem' }}>
-        Проверьте, какое местоположение видят сервисы в интернете
+        Как сейчас Вас видят в Иннтернете ?
       </Typography>
 
-      {/* Кнопка проверки */}
-      {!data && !loading && (
-        <Button
-          onClick={handleCheck}
-          variant="outlined"
-          size="large"
-          sx={{
-            color: '#00ff41',
-            borderColor: '#00ff41',
-            mb: 4,
-            '&:hover': {
-              background: 'rgba(0, 255, 65, 0.1)',
-              boxShadow: '0 0 20px rgba(0, 255, 65, 0.4)',
-            },
-          }}
-        >
-          ▶ ПРОВЕРИТЬ_МОЁ_МЕСТОПОЛОЖЕНИЕ
-        </Button>
-      )}
+      <Typography
+        sx={{ color: 'text.secondary', maxWidth: 560, mx: 'auto', mb: 4 }}
+      >
+        Карта покажет примерный регион, определённый по публичному IP.
+        Это не точное физическое местоположение.
+      </Typography>
 
-      {/* Состояние загрузки */}
-      {loading && (
+      {!user ? (
         <Box sx={{ mb: 4 }}>
-          <Typography sx={{ color: '#00aa2a', mb: 2 }}>
-            Сканирование сети...
+          <Typography sx={{ color: 'text.secondary', mb: 2 }}>
+            Чтобы увидеть свой IP и регион на карте, войдите в аккаунт.
           </Typography>
-          <Box sx={{ 
-            width: 200, 
-            height: 4, 
-            bgcolor: '#0a2a0a',
-            mx: 'auto',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <Box sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              height: '100%',
-              width: '30%',
-              bgcolor: '#00ff41',
-              animation: 'progress 1.5s ease-in-out infinite',
-              '@keyframes progress': {
-                '0%': { left: '-30%' },
-                '100%': { left: '100%' },
-              },
-            }} />
-          </Box>
-        </Box>
-      )}
-
-      {/* Ошибка */}
-      {error && (
-        <Paper sx={{ 
-          p: 2, 
-          mb: 4, 
-          bgcolor: 'rgba(255, 0, 0, 0.1)',
-          border: '1px solid #ff4444',
-          maxWidth: 400,
-          mx: 'auto'
-        }}>
-          <Typography sx={{ color: '#ff4444' }}>
-            ⚠ ОШИБКА: {error}
-          </Typography>
-        </Paper>
-      )}
-
-      {/* Результаты */}
-      {data && (
-        <Box>
-          {/* Карта */}
-          <MapContainer elevation={0}>
-            <ScanLine />
-            <svg 
-              ref={svgRef}
-              width="100%" 
-              height="100%" 
-              viewBox="0 0 700 350"
-            />
-            
-            {/* Оверлей с данными */}
-            <Box sx={{
-              position: 'absolute',
-              bottom: 10,
-              left: 10,
-              background: 'rgba(0, 0, 0, 0.9)',
-              border: '1px solid #ff4444',
-              p: 1.5,
-              minWidth: 150,
-            }}>
-              <Typography sx={{ color: '#ff4444', fontSize: '0.7rem', mb: 0.5 }}>
-                ⚠ ОБНАРУЖЕНО
-              </Typography>
-              <Typography sx={{ color: '#00ff41', fontSize: '1rem', fontWeight: 'bold' }}>
-                {data.country}
-              </Typography>
-              <Typography sx={{ color: '#00aa2a', fontSize: '0.75rem' }}>
-                IP: {data.ip}
-              </Typography>
-              {data.city && (
-                <Typography sx={{ color: '#008822', fontSize: '0.7rem' }}>
-                  {data.city}, {data.region}
-                </Typography>
-              )}
-            </Box>
-          </MapContainer>
-
-          {/* Рекомендация */}
-          <Paper sx={{ 
-            mt: 3, 
-            p: 2, 
-            maxWidth: 500,
-            mx: 'auto',
-            bgcolor: 'rgba(255, 170, 0, 0.05)',
-            border: '1px solid #ffaa00',
-          }}>
-            <Typography sx={{ color: '#ffaa00', fontSize: '0.9rem' }}>
-              ⚠ ВАША СТРАНА ВИДНА ВСЕМ В ИНТЕРНЕТЕ
-            </Typography>
-            <Typography sx={{ color: '#00aa2a', fontSize: '0.8rem', mt: 1 }}>
-              Используйте VPN, чтобы скрыть реальное местоположение и получить доступ к свободному интернету
-            </Typography>
-            <Button 
-              href="/register" 
-              variant="outlined" 
-              size="small"
-              sx={{ 
-                mt: 2,
-                color: '#00ff41',
-                borderColor: '#00ff41',
-              }}
-            >
-              ЗАЩИТИТЬ СОЕДИНЕНИЕ →
-            </Button>
-          </Paper>
-
-          {/* Кнопка повторной проверки */}
-          <Button
-            onClick={() => {
-              setData(null);
-              setError(null);
-            }}
-            variant="outlined"
-            size="small"
+          <Box
             sx={{
-              mt: 3,
-              color: '#00aa2a',
-              borderColor: '#00aa2a',
+              display: 'flex',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
             }}
           >
-            ⟲ ПОВТОРИТЬ ПРОВЕРКУ
-          </Button>
+            <Button href="/register" variant="contained">
+              Зарегистрироваться
+            </Button>
+            <Button href="/login" variant="outlined">
+              Войти
+            </Button>
+          </Box>
         </Box>
+      ) : (
+        <>
+          {!data && !loading && (
+            <Button onClick={handleCheck} variant="outlined" size="large">
+              Проверить IP-адрес
+            </Button>
+          )}
+
+          {loading && <CircularProgress aria-label="Идёт проверка IP" />}
+
+          {error && (
+            <Typography role="alert" sx={{ color: 'error.main', mt: 3 }}>
+              {error}
+            </Typography>
+          )}
+
+          {data && (
+            <Box sx={{ maxWidth: 760, mx: 'auto', mt: 3 }}>
+              <Paper
+                sx={{
+                  p: { xs: 1, sm: 2 },
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                  bgcolor: 'background.paper',
+                }}
+              >
+                <Box
+                  component="svg"
+                  ref={svgRef}
+                  viewBox="0 0 700 350"
+                  role="img"
+                  aria-label={`Карта мира: примерный регион ${data.region || data.country || 'неизвестен'}`}
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    height: 'auto',
+                    bgcolor: '#242321',
+                    borderRadius: 2,
+                  }}
+                />
+              </Paper>
+
+              <Typography sx={{ mt: 2, color: 'text.primary' }}>
+                {data.region || 'Регион не определён'}
+                {data.country ? `, ${data.country}` : ''}
+              </Typography>
+              <Typography sx={{ color: 'text.secondary' }}>
+                Публичный IP: {data.ip}
+              </Typography>
+              <Typography
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.8rem',
+                  mt: 1,
+                }}
+              >
+                Отметка приблизительная. Если VPN уже включён, результат
+                может относиться к его выходному серверу.
+              </Typography>
+
+              <Button
+                onClick={handleCheck}
+                variant="outlined"
+                sx={{ mt: 3 }}
+              >
+                Проверить ещё раз
+              </Button>
+            </Box>
+          )}
+        </>
       )}
     </Box>
   );

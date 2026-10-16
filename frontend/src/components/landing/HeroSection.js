@@ -1,150 +1,177 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, Container } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import React from 'react';
+import { Box, Button, Container, Typography } from '@mui/material';
+import { useAuth } from '../../contexts/AuthContext';
 
-const BlinkCursor = styled('span')({
-  animation: 'blink 1s infinite',
-  '@keyframes blink': {
-    '0%, 50%': { opacity: 1 },
-    '51%, 100%': { opacity: 0 },
-  },
-});
 
-const StatBox = styled(Box)({
-  border: '1px solid #00aa2a',
-  padding: '1rem 1.5rem',
-  minWidth: '140px',
-  textAlign: 'center',
-});
 
-const AsciiArt = styled('pre')({
-  fontSize: '0.55rem',
-  lineHeight: 1.2,
-  color: '#00ff41',
-  textShadow: '0 0 5px rgba(0, 255, 65, 0.5)',
-  overflow: 'auto',
-  marginBottom: '2rem',
-});
 
 const HeroSection = () => {
-  const [typedText, setTypedText] = useState(['', '', '']);
-  const texts = [
-    '> INITIALIZING AUTHENTICATION  PROTOCOL...',
-    '> VPN SECURE CHANNEL ESTABLISHED',
-    '> WELCOME TO THE VAULT, OPERATOR',
-  ];
+  const { user } = useAuth();
 
-  useEffect(() => {
-    texts.forEach((text, index) => {
-      setTimeout(() => {
-        let i = 0;
-        const interval = setInterval(() => {
-          if (i <= text.length) {
-            setTypedText(prev => {
-              const newTexts = [...prev];
-              newTexts[index] = text.substring(0, i);
-              return newTexts;
-            });
-            i++;
-          } else {
-            clearInterval(interval);
-          }
-        }, 50);
-      }, index * 1000);
-    });
-  }, []);
 
+  
   return (
     <Box
-      id="status"
+      component="section"
+      id="home"
       sx={{
-        minHeight: '100vh',
+        minHeight: { xs: 'auto', md: '100vh' },
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        pt: '80px',
-        position: 'relative',
+        alignItems: 'center',
+        pt: { xs: 15, md: 12 },
+        pb: { xs: 10, md: 12 },
       }}
     >
       <Container maxWidth="lg">
-        <Typography sx={{ color: '#00aa2a', mb: 2 }}>
-          root@vault-tec:~$ <BlinkCursor>_</BlinkCursor>
-        </Typography>
-
-        <AsciiArt>
-{`╔══════════════════════════════════════════════════════════════╗
-║  ██████╗  █████╗ ██████╗ ██╗██╗   ██╗███████╗    ███╗   ███╗ ║
-║  ██╔══██╗██╔══██╗██╔══██╗██║██║   ██║██╔════╝    ████╗ ████║ ║
-║  ██████╔╝███████║██║  ██║██║██║   ██║█████╗      ██╔████╔██║ ║
-║  ██╔══██╗██╔══██║██║  ██║██║╚██╗ ██╔╝██╔══╝      ██║╚██╔╝██║ ║
-║  ██║  ██║██║  ██║██████╔╝██║ ╚████╔╝ ███████╗    ██║ ╚═╝ ██║ ║
-║  ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═══╝  ╚══════╝    ╚═╝     ╚═╝ ║
-╚══════════════════════════════════════════════════════════════╝`}
-        </AsciiArt>
-
-        <Box sx={{ mb: 4 }}>
-          {typedText.map((text, i) => (
-            <Typography key={i} sx={{ color: '#00aa2a', mb: 0.5 }}>
-              {text || '_'}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' },
+            alignItems: 'center',
+            gap: { xs: 6, md: 8 },
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{
+                color: 'primary.main',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                letterSpacing: '0.16em',
+                mb: 2,
+              }}
+            >
+              Невиртуальный доступ к виртуальному
             </Typography>
-          ))}
-        </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 4 }}>
-          {[
-            { label: 'SERVER_STATUS', value: 'ONLINE', status: 'online' },
-            { label: 'ACTIVE_USERS', value: '042' },
-            { label: 'UPTIME', value: '77d:04:20' },
-            { label: 'THREAT_LEVEL', value: 'MINIMAL', status: 'warning' },
-          ].map((stat) => (
-            <StatBox key={stat.label}>
-              <Typography sx={{ fontSize: '0.7rem', color: '#00aa2a', mb: 0.5 }}>
-                {stat.label}
-              </Typography>
-              <Typography 
-                sx={{ 
-                  fontSize: '1.25rem', 
-                  fontWeight: 'bold',
-                  color: stat.status === 'warning' ? '#ffaa00' : '#00ff41',
-                  animation: stat.status === 'online' ? 'pulse 2s infinite' : 'none',
+            <Typography
+              component="h1"
+              sx={{
+                fontSize: { xs: '2.7rem', sm: '3.8rem', md: '4.5rem' },
+                lineHeight: 1.08,
+                fontWeight: 700,
+                letterSpacing: '-0.04em',
+                mb: 3,
+              }}
+            >
+              Интернет —
+              <Box component="span" sx={{ display: 'block', color: 'primary.main' }}>
+                на ваших условиях.
+              </Box>
+            </Typography>
+
+            <Typography
+              sx={{
+                color: 'text.secondary',
+                fontSize: { xs: '1rem', md: '1.125rem' },
+                lineHeight: 1.7,
+                maxWidth: 520,
+                mb: 4,
+              }}
+            >
+              Устройтесь поудобнее, сейчас Вы получите комфортный и безопасный доступ в сеть без посторонних глаз.  Мы не обходим блокировки, мы просто дарим Вам свободу
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              <Button
+                href={user ? '#status' : '/register'}
+                variant="contained"
+                size="large"
+                sx={{
+                  px: 3,
+                  py: 1.25,
+                  bgcolor: 'primary.main',
+                  color: '#1b1b1b',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  '&:hover': {
+                    bgcolor: 'primary.light',
+                    boxShadow: 'none',
+                  },
                 }}
               >
-                {stat.value}
-              </Typography>
-            </StatBox>
-          ))}
-        </Box>
+                {user ? 'Проверить IP' : 'Создать аккаунт'}
+              </Button>
 
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Button href="/register" variant="outlined" size="large">
-            ▶ INITIATE_SEQUENCE
-          </Button>
-          <Button href="https://github.com/hugostiglits/radius-manager" variant="outlined" size="large" sx={{ borderStyle: 'dashed' }}>
-            ⌘ ACCESS_REPOSITORY
-          </Button>
+              {!user && (
+                <Button href="#status" variant="outlined" size="large">
+                  Как работает проверка IP
+                </Button>
+              )}
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              p: { xs: 3, sm: 4 },
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '24px',
+              bgcolor: 'background.paper',
+            }}
+          >
+            <Typography
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+                mb: 3,
+              }}
+            >
+              СХЕМА ПОДКЛЮЧЕНИЯ
+            </Typography>
+
+            <Box
+              component="svg"
+              viewBox="0 0 460 230"
+              aria-hidden="true"
+              sx={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                color: 'primary.main',
+              }}
+            >
+              <path
+                d="M70 102 H390"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="6 8"
+                opacity="0.5"
+              />
+              <circle cx="70" cy="102" r="23" fill="none" stroke="currentColor" strokeWidth="3" />
+              <circle cx="230" cy="102" r="42" fill="none" stroke="currentColor" strokeWidth="3" />
+              <circle cx="230" cy="102" r="53" fill="none" stroke="currentColor" opacity="0.25" />
+              <circle cx="390" cy="102" r="23" fill="none" stroke="currentColor" strokeWidth="3" />
+              <circle cx="70" cy="102" r="5" fill="currentColor" />
+              <circle cx="390" cy="102" r="5" fill="currentColor" />
+              <text
+                x="230"
+                y="108"
+                textAnchor="middle"
+                fill="currentColor"
+                fontSize="17"
+                fontWeight="700"
+              >
+                VPN
+              </text>
+              <text x="70" y="165" textAnchor="middle" fill="currentColor" fontSize="12">
+                ВЫ
+              </text>
+              <text x="230" y="185" textAnchor="middle" fill="currentColor" fontSize="12">
+                ПОДКЛЮЧЕНИЕ
+              </text>
+              <text x="390" y="165" textAnchor="middle" fill="currentColor" fontSize="12">
+                ИНТЕРНЕТ
+              </text>
+            </Box>
+
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>
+              Простой путь от устройства к сети.
+            </Typography>
+          </Box>
         </Box>
       </Container>
-
-      {/* Scroll Indicator */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '2rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          textAlign: 'center',
-          animation: 'bounce 2s infinite',
-          '@keyframes bounce': {
-            '0%, 100%': { transform: 'translateX(-50%) translateY(0)' },
-            '50%': { transform: 'translateX(-50%) translateY(10px)' },
-          },
-        }}
-      >
-        <Typography sx={{ fontSize: '0.7rem', color: '#00aa2a', letterSpacing: 2 }}>
-          SCROLL_TO_CONTINUE
-        </Typography>
-        <Typography sx={{ fontSize: '1.5rem', color: '#00ff41' }}>▼</Typography>
-      </Box>
     </Box>
   );
 };

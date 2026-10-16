@@ -3,6 +3,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+
+const profileRoutes = require('./routes/profileRoutes');
+
+
+const { isIP } = require('node:net');
+
+
 const authMiddleware = require('./middleware/auth');
 const pool = require ('./config/db');
 require('dotenv').config();
@@ -40,7 +47,7 @@ app.get('/api/db-test', async (req,res)=>{
 
 
 app.get('/api/protected',authMiddleware,(req, res)=>{
-    return res.json({message: 'You are authenticated', admin: req.admin});
+    return res.json({message: 'You are authenticated', user: req.user});
 });
 //конец тестовой поебеньи
 
@@ -54,7 +61,10 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/api/users',userRoutes);
 
 
+const geoRoutes = require('./routes/geoRoutes');
+app.use('/api/geo', geoRoutes);
 
+app.use('/api/profile', profileRoutes);
 
 
 const PORT  = process.env.PORT || '8000';

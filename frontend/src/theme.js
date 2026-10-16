@@ -1,54 +1,72 @@
 import { createTheme } from '@mui/material/styles';
 
 export const cyberpunkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00ff41',      // Фосфорный зелёный
-      dark: '#00aa2a',
-      light: '#4dff7a',
-    },
-    secondary: {
-      main: '#ffaa00',      // Янтарный для предупреждений
-    },
-    background: {
-      default: '#0a0f0a',   // Тёмный терминал
-      paper: '#0a150a',
-    },
-    text: {
-      primary: '#00ff41',
-      secondary: '#00aa2a',
-    },
+palette: {
+  mode: 'dark',
+  primary: {
+    main: '#e5bd82',
+    dark: '#c7985b',
+    light: '#f3d5ac',
   },
-  typography: {
-    fontFamily: '"Courier New", "Courier", monospace',
-    h1: { letterSpacing: '0.1em' },
-    h2: { letterSpacing: '0.05em' },
-    button: { letterSpacing: '0.1em' },
+  secondary: {
+    main: '#9daf9d',
   },
+  background: {
+    default: '#1b1b1b',
+    paper: '#2a2926',
+  },
+  text: {
+    primary: '#f0eae0',
+    secondary: '#b4aa9d',
+  },
+  divider: '#48423a',
+},
+typography: {
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  h4: {
+    fontWeight: 650,
+    letterSpacing: '-0.025em',
+  },
+  h5: {
+    fontWeight: 650,
+    letterSpacing: '-0.02em',
+  },
+  button: {
+    fontWeight: 600,
+    letterSpacing: 0,
+  },
+},
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 0,
-          textTransform: 'uppercase',
-          border: '1px solid #00ff41',
-          background: 'transparent',
-          '&:hover': {
-            background: 'rgba(0, 255, 65, 0.1)',
-            boxShadow: '0 0 20px rgba(0, 255, 65, 0.4)',
-          },
-        },
+  MuiButton: {
+    styleOverrides: {
+      root: {
+        borderRadius: 11,
+        textTransform: 'none',
+        fontWeight: 600,
       },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-          backgroundColor: 'rgba(10, 21, 10, 0.95)',
-          border: '1px solid #00aa2a',
+      contained: {
+        boxShadow: 'none',
+        '&:hover': {
+          boxShadow: 'none',
         },
       },
     },
   },
+  MuiPaper: {
+    styleOverrides: {
+      root: {
+        backgroundImage: 'none',
+        border: '1px solid #48423a',
+        borderRadius: 16,
+      },
+    },
+  },
+  MuiOutlinedInput: {
+    styleOverrides: {
+      root: {
+        borderRadius: 11,
+      },
+    },
+  },
+},
 });
