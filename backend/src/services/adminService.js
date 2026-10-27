@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const {
     generateVpnUsername,
     generateVpnPassphrase,
-} = require('../utils/generateVpnUsername');
+} = require('../utils/generateVpnUserName');
 
 
 class AdminService {
