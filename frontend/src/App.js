@@ -17,6 +17,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
+import AccountPage from './pages/AccountPage';
+import VpnAccounts from './components/accounts/VpnAccounts';
 
 // Тёмная тема для Material-UI
 const darkTheme = createTheme({
@@ -43,7 +45,7 @@ console.log('API URL:', process.env.REACT_APP_API_URL);
 
 function App() {
   return (
-   
+
     <ThemeProvider theme={cyberpunkTheme}>
 
       <CssBaseline />
@@ -58,6 +60,16 @@ function App() {
               <Route path="/register" element={<Register />} />
               {/* Основная страница сайта */}
               <Route path="/home" element={<LandingPage />} />
+              {/* Личный кабинет пользователя */}
+              <Route path="/account"
+                     element={
+                          <ProtectedRoute>
+                            <AccountPage/>
+                          </ProtectedRoute>
+                    }
+              />
+
+
               {/* Административная панель */}
               <Route
                 path="/dashboard"

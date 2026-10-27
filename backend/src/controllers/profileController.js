@@ -4,12 +4,17 @@ exports.listVpnAccounts = async (req, res) => {
     try {
         const { rows } = await pool.query(
             `SELECT
-                id,
-                radius_username AS "vpnUsername",
-                created_at AS "createdAt"
-             FROM vpn_accounts
-             WHERE user_id = $1
-             ORDER BY created_at, id`,
+                v.id,
+                v.radius_username AS "vpnUsername",
+                v.created_at AS "createdAt"
+             FROM vpn_accounts v
+             WHERE v.user_id = $1
+             AND EXISTS (
+                SELECT 1
+                FROM radcheck r
+                WHERE r.username = v.radius_username
+             )
+             ORDER BY v.created_at, v.id`,
             [req.user.id]
         );
 

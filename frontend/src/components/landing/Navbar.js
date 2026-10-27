@@ -82,6 +82,14 @@ const handleLogout = () => {
         {/* Прроверяем , авторизован ли пользователь */}
         { user ? (
          <>
+            <Button onClick={()=> navigate('/account')}
+                    variant='outline'
+                    size='small'>
+                      Личный кабинет
+                    </Button>
+
+
+
               {user?.role === 'admin' && (
                 <Button
                   href="/dashboard"
@@ -91,9 +99,9 @@ const handleLogout = () => {
                   [DASHBOARD]
                 </Button>
               )}
-              <Button 
+              <Button
                 onClick={handleLogout}
-                variant="outlined" 
+                variant="outlined"
                 size="small"
                 sx={{
                   color: 'text.secondary',
@@ -108,16 +116,16 @@ const handleLogout = () => {
           <Button href="/login" variant="outlined" size="small">
             [LOGIN]
           </Button>
-          <Button 
-            href="/register" 
-            variant="outlined" 
+          <Button
+            href="/register"
+            variant="outlined"
             size="small"
           >
             [REGISTER]
           </Button>
           </>
 
-        )} 
+        )}
       </Toolbar>
     </StyledAppBar>
   );
